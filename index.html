@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GIO Cafe & Slow Life - ระบบบัญชีรายวัน</title>
+    
+    <!-- Google Fonts: Outfit, Noto Sans Thai & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme"> <!-- Default to premium dark theme -->
+    <!-- Liquid Glass Background Blobs -->
+    <div class="liquid-bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation (Desktop & Tablet) -->
+        <aside class="sidebar">
+            <div class="sidebar-logo-container" style="margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div class="gio-logo-wrapper" style="color: var(--primary); width: 100%; max-width: 210px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 240 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                      <!-- G and I -->
+                      <text x="25" y="75" font-family="'Playfair Display', 'Georgia', serif" font-size="75" font-weight="700" fill="currentColor">G</text>
+                      <text x="88" y="75" font-family="'Playfair Display', 'Georgia', serif" font-size="75" font-weight="700" fill="currentColor">I</text>
+                      
+                      <!-- Heart and Coffee Cup (O) -->
+                      <g transform="translate(112, 10)">
+                        <!-- Heart Outline -->
+                        <path d="M 40,28 
+                                 C 40,28 32,8 18,10 
+                                 C 4,12 2,28 12,42 
+                                 C 22,56 42,72 45,74 
+                                 C 45,74 48,72 56,64 
+                                 C 65,55 78,40 76,26 
+                                 C 74,12 60,6 48,16 
+                                 C 44,19 40,28 40,28 Z" 
+                              fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                              
+                        <!-- Coffee Cup inside the heart -->
+                        <g transform="translate(25, 30)">
+                          <!-- Saucer -->
+                          <path d="M 5,27 L 25,27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                          
+                          <!-- Cup Body -->
+                          <path d="M 6,15 C 6,24 9,26 15,26 C 21,26 24,24 24,15 Z" fill="currentColor" />
+                          
+                          <!-- Cup Handle -->
+                          <path d="M 24,17 C 27,17 28,19 28,21 C 28,23 27,24 24,24" fill="none" stroke="currentColor" stroke-width="2" />
+                          
+                          <!-- Steam -->
+                          <path d="M 11,10 Q 9,6 12,2 T 10,-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                          <path d="M 15,11 Q 13,7 16,3 T 14,-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                          <path d="M 19,10 Q 17,6 20,2 T 18,-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        </g>
+                      </g>
+                      
+                      <!-- Subtitle -->
+                      <text x="120" y="106" text-anchor="middle" font-family="'Playfair Display', 'Georgia', serif" font-size="14.5" font-weight="600" letter-spacing="3.5" fill="currentColor">Cafe & Slow Life</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <button class="nav-item active" data-target="dashboard-section">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>แดชบอร์ด</span>
+                </button>
+                <button class="nav-item" data-target="transactions-section">
+                    <i data-lucide="arrow-left-right"></i>
+                    <span>บันทึกรายวัน</span>
+                </button>
+                <button class="nav-item" data-target="reports-section">
+                    <i data-lucide="file-bar-chart"></i>
+                    <span>รายงานสรุป</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer" style="display: flex; flex-direction: column; gap: 8px;">
+                <button id="theme-toggle" class="footer-btn">
+                    <i data-lucide="sun" class="sun-icon"></i>
+                    <i data-lucide="moon" class="moon-icon"></i>
+                    <span class="theme-text">โหมดสว่าง</span>
+                </button>
+                <button id="lang-toggle" class="footer-btn">
+                    <i data-lucide="languages"></i>
+                    <span class="lang-text">English</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <main class="main-content">
+            <!-- Header bar -->
+            <header class="content-header">
+                <div class="header-title">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <h2 id="page-title" style="margin: 0;">Dashboard</h2>
+                        <span id="sync-status" class="sync-badge offline-mode">
+                            <i data-lucide="cloud-off" style="width: 12px; height: 12px; margin-right: 4px;"></i>
+                            <span id="sync-status-text">Offline Mode</span>
+                        </span>
+                    </div>
+                    <p id="page-subtitle" class="text-muted" style="margin-top: 4px;">Daily coffee shop financial overview and summary</p>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 8px;">
+                    <button id="lang-toggle-header" class="btn btn-secondary" style="padding: 10px 14px;" title="Switch Language / เปลี่ยนภาษา">
+                        <i data-lucide="languages" style="width: 16px; height: 16px;"></i>
+                        <span class="lang-header-text">EN</span>
+                    </button>
+                    <button class="btn btn-primary btn-add-transaction">
+                        <i data-lucide="plus"></i>
+                        <span id="btn-add-text">Add Daily Entry</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- 1. Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <!-- KPI Widgets Grid -->
+                <div class="widgets-grid">
+                    <div class="widget-card widget-income">
+                        <div class="widget-icon">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                        <div class="widget-info">
+                            <h3>Total Income</h3>
+                            <div class="value-loading" id="dashboard-total-income">฿0.00</div>
+                            <span class="widget-trend text-success"><i data-lucide="trending-up"></i> <span id="income-percentage">0%</span> vs last 15d</span>
+                        </div>
+                    </div>
+                    <div class="widget-card widget-expense">
+                        <div class="widget-icon">
+                            <i data-lucide="trending-down"></i>
+                        </div>
+                        <div class="widget-info">
+                            <h3>Total Expense</h3>
+                            <div class="value-loading" id="dashboard-total-expense">฿0.00</div>
+                            <span class="widget-trend text-danger"><i data-lucide="trending-up"></i> <span id="expense-percentage">0%</span> vs last 15d</span>
+                        </div>
+                    </div>
+                    <div class="widget-card widget-profit">
+                        <div class="widget-icon">
+                            <i data-lucide="wallet"></i>
+                        </div>
+                        <div class="widget-info">
+                            <h3>Net Profit</h3>
+                            <div class="value-loading" id="dashboard-net-profit">฿0.00</div>
+                            <span class="widget-trend" id="profit-trend-badge"><span id="profit-percentage">0%</span> of income</span>
+                        </div>
+                    </div>
+                    <div class="widget-card widget-sales">
+                        <div class="widget-icon">
+                            <i data-lucide="calendar"></i>
+                        </div>
+                        <div class="widget-info">
+                            <h3>Avg. Daily Income</h3>
+                            <div class="value-loading" id="dashboard-avg-daily">฿0.00</div>
+                            <span class="widget-trend text-primary"><span id="days-recorded">0 days</span> recorded</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Recent Transactions Area -->
+                <div class="recent-transactions-card">
+                    <div class="card-header">
+                        <h3>Recent Daily Summaries</h3>
+                        <button class="btn btn-text btn-view-all">View All <i data-lucide="arrow-right"></i></button>
+                    </div>
+                    <div class="transactions-list-container">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th class="text-right">Daily Income</th>
+                                        <th class="text-right">Daily Expense</th>
+                                        <th class="text-right">Net Profit / Loss</th>
+                                        <th>Notes</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-recent-table-body">
+                                    <!-- Rendered dynamically by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mobile-cards-list" id="dashboard-recent-mobile-list">
+                            <!-- Rendered dynamically by JavaScript (cards for mobile screen) -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Transactions Section -->
+            <section id="transactions-section" class="content-section">
+                <div class="filters-card">
+                    <div class="filters-grid-daily">
+                        <div class="form-group search-group">
+                            <label for="search-input">ค้นหาหมายเหตุ</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="search-input" placeholder="พิมพ์คำค้นหาในหมายเหตุ...">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-date-preset">ช่วงเวลาสรุป</label>
+                            <select id="filter-date-preset" class="select-input">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="week">สัปดาห์นี้</option>
+                                <option value="month" selected>เดือนนี้</option>
+                                <option value="custom">กำหนดเอง</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="custom-date-range hidden" id="custom-date-range-container">
+                        <div class="form-group">
+                            <label for="filter-start-date">จากวันที่</label>
+                            <input type="date" id="filter-start-date" class="date-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-end-date">ถึงวันที่</label>
+                            <input type="date" id="filter-end-date" class="date-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transactions-main-card">
+                    <div class="table-actions-bar">
+                        <span class="results-count" id="results-count">พบ 0 รายการ</span>
+                        <div class="action-buttons" style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary text-danger" id="btn-clear-all" title="ล้างรายการทั้งหมด" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; padding: 8px 14px; font-size: 0.85rem;">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                <span>ล้างยอดทั้งหมด</span>
+                            </button>
+                            <button class="btn btn-secondary btn-icon-only" id="btn-export-csv" title="ดาวน์โหลดไฟล์ CSV" style="padding: 8px 10px;">
+                                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>วันที่</th>
+                                    <th class="text-right">รายรับประจำวัน</th>
+                                    <th class="text-right">รายจ่ายประจำวัน</th>
+                                    <th class="text-right">กำไร / ขาดทุนสุทธิ</th>
+                                    <th>หมายเหตุ/รายละเอียด</th>
+                                    <th class="text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body">
+                                <!-- Rendered dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Mobile List View -->
+                    <div class="mobile-cards-list" id="transactions-mobile-list">
+                        <!-- Rendered dynamically by JS -->
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination-container" id="pagination-container">
+                        <!-- Rendered dynamically by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Reports Section -->
+            <section id="reports-section" class="content-section">
+                <div class="reports-toolbar">
+                    <div class="report-filters">
+                        <select id="report-period-select" class="select-input">
+                            <option value="week">สัปดาห์นี้</option>
+                            <option value="month" selected>เดือนนี้ (30 วันล่าสุด)</option>
+                            <option value="year">ปีนี้</option>
+                        </select>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn btn-secondary" id="btn-print-report">
+                            <i data-lucide="printer"></i>
+                            <span>พิมพ์รายงาน / PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="report-print-container" id="printable-report-area">
+                    <div class="report-header-print">
+                        <h2>รายงานสรุปรายรับรายจ่ายรายวันร้านกาแฟ</h2>
+                        <h4 id="report-print-date-range">ช่วงเวลา: -</h4>
+                        <p class="print-timestamp">พิมพ์รายงานเมื่อ: <span id="report-generation-time"></span></p>
+                    </div>
+
+                    <div class="report-summary-cards">
+                        <div class="rep-card rep-income">
+                            <h4>รายรับสะสม</h4>
+                            <p id="rep-total-income">฿0.00</p>
+                        </div>
+                        <div class="rep-card rep-expense">
+                            <h4>รายจ่ายสะสม</h4>
+                            <p id="rep-total-expense">฿0.00</p>
+                        </div>
+                        <div class="rep-card rep-profit">
+                            <h4>กำไรรวมสุทธิ</h4>
+                            <p id="rep-net-profit">฿0.00</p>
+                        </div>
+                        <div class="rep-card rep-margin">
+                            <h4>อัตรากำไรเฉลี่ย</h4>
+                            <p id="rep-profit-margin">0.0%</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Reports Line Chart -->
+                    <div class="chart-card large-chart" style="margin: 24px 0 32px 0;">
+                        <div class="chart-header">
+                            <h3 style="font-size: 1.05rem; font-weight: 600;">กราฟแนวโน้มกระแสเงินสดรายวัน</h3>
+                        </div>
+                        <div class="chart-container" style="height: 320px;">
+                            <canvas id="cashflowChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Daily Statement List -->
+                    <div class="report-statement-list" style="margin-top: 20px;">
+                        <h3>ตารางสรุปรายรับรายจ่ายรายวัน</h3>
+                        <table class="report-detail-table">
+                            <thead>
+                                <tr>
+                                    <th>วันที่</th>
+                                    <th class="text-right">รายรับประจำวัน</th>
+                                    <th class="text-right">รายจ่ายประจำวัน</th>
+                                    <th class="text-right">กำไร / ขาดทุนสุทธิ</th>
+                                    <th>หมายเหตุ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-transactions-list">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation Bar (Mobile Viewport) -->
+        <nav class="bottom-nav">
+            <button class="bottom-nav-item active" data-target="dashboard-section">
+                <i data-lucide="layout-dashboard"></i>
+                <span>แดชบอร์ด</span>
+            </button>
+            <button class="bottom-nav-item" data-target="transactions-section">
+                <i data-lucide="arrow-left-right"></i>
+                <span>บันทึกรายวัน</span>
+            </button>
+            <button class="bottom-nav-item" data-target="reports-section">
+                <i data-lucide="file-bar-chart"></i>
+                <span>รายงาน</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Record Daily Summary Modal -->
+    <div class="modal-backdrop" id="transaction-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-title">บันทึกยอดสรุปประจำวัน</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <form id="transaction-form">
+                <input type="hidden" id="tx-id">
+                
+                <div class="form-group">
+                    <label for="tx-date">ระบุวันที่ทำรายการ</label>
+                    <input type="date" id="tx-date" class="date-input" required>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="tx-income">รายรับวันนี้ (บาท)</label>
+                        <input type="number" id="tx-income" min="0" step="0.01" placeholder="0.00" value="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tx-expense">รายจ่ายวันนี้ (บาท)</label>
+                        <input type="number" id="tx-expense" min="0" step="0.01" placeholder="0.00" value="0.00" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tx-note">หมายเหตุ / รายละเอียด (เช่น ซื้อสต็อกบด 2 ถุง, ซ่อมท่อน้ำ)</label>
+                    <textarea id="tx-note" rows="3" placeholder="ระบุข้อมูลเพิ่มเติมของวันนี้ (ถ้ามี)..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-transaction">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dialog Confirm Delete -->
+    <div class="modal-backdrop" id="delete-confirm-modal">
+        <div class="modal-container modal-small">
+            <div class="modal-header">
+                <h3>ยืนยันการลบข้อมูลรายวัน</h3>
+                <button class="btn-close-delete-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>คุณแน่ใจหรือไม่ที่จะลบยอดสรุปวันที่ "<span id="delete-tx-title" class="text-bold"></span>"?</p>
+                <p class="text-muted text-small">การดำเนินการนี้จะลบตัวเลขรายวันและไม่สามารถย้อนกลับได้</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-close-delete-modal">ยกเลิก</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-delete">ยืนยันการลบ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom App JS -->
+    <script src="app.js"></script>
+</body>
+</html>

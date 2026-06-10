@@ -13,6 +13,13 @@ let state = {
 };
 let isCloudMode = false;
 
+// Helper to parse date string safely across all browsers (specifically Safari/iOS)
+function parseLocalDate(dateStr) {
+    if (!dateStr) return new Date();
+    // Convert YYYY-MM-DD to YYYY/MM/DD for cross-browser parsing in local timezone
+    return new Date(String(dateStr).replace(/-/g, '/'));
+}
+
 // --- Localization Dictionary (i18n) ---
 const translations = {
     th: {
@@ -663,7 +670,7 @@ function initializeDefaultState() {
 // --- Dashboard Calculations & Rendering ---
 function renderDashboard() {
     const tx = state.transactions;
-    const sortedTx = [...tx].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sortedTx = [...tx].sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
     
     // 1. Calculations
     let totalIncome = 0;
@@ -687,7 +694,7 @@ function renderDashboard() {
     midPointDate.setDate(now.getDate() - 15);
     
     tx.forEach(t => {
-        const tDate = new Date(t.date);
+        const tDate = parseLocalDate(t.date);
         if (tDate >= midPointDate) {
             incomeCurrent15 += (t.income || 0);
             expenseCurrent15 += (t.expense || 0);
@@ -760,7 +767,7 @@ function renderDashboard() {
         mobileList.innerHTML = `<div class="text-center text-muted py-4">${t('no_data')}</div>`;
     } else {
         recentTx.forEach(t => {
-            const formattedDate = new Date(t.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            const formattedDate = parseLocalDate(t.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
             const pnl = t.income - t.expense;
             
             // Desktop Row
@@ -829,8 +836,8 @@ function renderCharts() {
     
     // Sort transactions chronologically
     const filteredTx = state.transactions
-        .filter(t => new Date(t.date) >= dateLimit)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+        .filter(t => parseLocalDate(t.date) >= dateLimit)
+        .sort((a, b) => parseLocalDate(a.date) - parseLocalDate(b.date));
 
     const dailyData = {};
     for (let j = chartPeriod - 1; j >= 0; j--) {
@@ -848,7 +855,7 @@ function renderCharts() {
     });
 
     const labels = Object.keys(dailyData).map(k => {
-        const d = new Date(k);
+        const d = parseLocalDate(k);
         return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
     });
     
@@ -970,7 +977,7 @@ function getFilteredTransactions() {
         if (searchQuery && !(t.note || '').toLowerCase().includes(searchQuery)) return false;
 
         // Date preset
-        const txDate = new Date(t.date);
+        const txDate = parseLocalDate(t.date);
         txDate.setHours(0,0,0,0);
         
         const today = new Date();
@@ -987,12 +994,12 @@ function getFilteredTransactions() {
             if (txDate < startOfMonth) return false;
         } else if (datePreset === 'custom') {
             if (startDate) {
-                const sDate = new Date(startDate);
+                const sDate = parseLocalDate(startDate);
                 sDate.setHours(0,0,0,0);
                 if (txDate < sDate) return false;
             }
             if (endDate) {
-                const eDate = new Date(endDate);
+                const eDate = parseLocalDate(endDate);
                 eDate.setHours(0,0,0,0);
                 if (txDate > eDate) return false;
             }
@@ -1005,7 +1012,7 @@ function getFilteredTransactions() {
 // --- Render Table in Transactions Tab ---
 function renderTransactionsTable() {
     let filteredList = getFilteredTransactions();
-    filteredList.sort((a, b) => new Date(b.date) - new Date(a.date));
+    filteredList.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
 
     const isTh = state.settings.lang === 'th';
     const countStr = filteredList.length.toLocaleString(isTh ? 'th-TH' : 'en-US');
@@ -1029,7 +1036,7 @@ function renderTransactionsTable() {
         mobileList.innerHTML = `<div class="text-center text-muted py-5">${noResultsText}</div>`;
     } else {
         paginatedList.forEach(t => {
-            const formattedDate = new Date(t.date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            const formattedDate = parseLocalDate(t.date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
             const pnl = t.income - t.expense;
             
             // Desktop
@@ -1170,11 +1177,11 @@ function renderReports() {
     }
 
     const reportTx = state.transactions.filter(t => {
-        const tDate = new Date(t.date);
+        const tDate = parseLocalDate(t.date);
         return tDate >= startDate && tDate <= endDate;
     });
 
-    reportTx.sort((a, b) => new Date(b.date) - new Date(a.date));
+    reportTx.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
 
     const isTh = state.settings.lang === 'th';
     const opt = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
@@ -1215,7 +1222,7 @@ function renderReports() {
         reportListBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">${noDataText}</td></tr>`;
     } else {
         reportTx.forEach(t => {
-            const dateStr = new Date(t.date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            const dateStr = parseLocalDate(t.date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
             const pnl = t.income - t.expense;
             
             const tr = document.createElement('tr');
@@ -1269,7 +1276,7 @@ function initFormsAndModals() {
             const duplicate = state.transactions.find(t => t.date === date);
             if (duplicate) {
                 const isTh = state.settings.lang === 'th';
-                const formattedDate = new Date(date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+                const formattedDate = parseLocalDate(date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' });
                 
                 let confirmMsg = t('confirm_duplicate_date', formattedDate);
                 confirmMsg = confirmMsg.replace('{income}', duplicate.income.toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 }));
@@ -1378,7 +1385,7 @@ function openDeleteConfirmModal(txId) {
     const tx = state.transactions.find(t => t.id === txId);
     if (!tx) return;
 
-    const formattedDate = new Date(tx.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    const formattedDate = parseLocalDate(tx.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
     document.getElementById('delete-tx-title').textContent = formattedDate;
     
     const deleteModal = document.getElementById('delete-confirm-modal');
@@ -1446,7 +1453,7 @@ function openTransactionModal(txId = null) {
 // --- CSV Export ---
 function exportCSV() {
     const filteredTx = getFilteredTransactions();
-    filteredTx.sort((a, b) => new Date(b.date) - new Date(a.date));
+    filteredTx.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
 
     let csvContent = '\uFEFF'; // Excel encoding BOM for Thai support
     csvContent += 'วันที่,ยอดรายรับรวม (บาท),ยอดรายจ่ายรวม (บาท),กำไร/ขาดทุนสุทธิ (บาท),หมายเหตุ/รายละเอียด\n';

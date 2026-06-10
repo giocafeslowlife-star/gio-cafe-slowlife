@@ -16,12 +16,36 @@ export async function onRequest(context) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Content-Type": "application/json"
   };
 
   if (method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Debug probe (Safe - does not expose password value)
+  if (url.searchParams.get("debug") === "true") {
+    return new Response(JSON.stringify({
+      hasDb: !!env.DB,
+      hasAppPassword: !!env.APP_PASSWORD,
+      appPasswordLength: env.APP_PASSWORD ? env.APP_PASSWORD.length : 0,
+      envKeys: Object.keys(env)
+    }), { 
+      status: 200,
+      headers: corsHeaders 
+    });
+  }
+
+  // Authentication check (if APP_PASSWORD is set in Cloudflare environment)
+  if (env.APP_PASSWORD) {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || authHeader !== `Bearer ${env.APP_PASSWORD}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized: Invalid or missing password." }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
   }
 
   try {

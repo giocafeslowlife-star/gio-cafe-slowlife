@@ -800,23 +800,23 @@ function renderDashboard() {
         tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${t('no_data')}</td></tr>`;
         mobileList.innerHTML = `<div class="text-center text-muted py-4">${t('no_data')}</div>`;
     } else {
-        recentTx.forEach(t => {
-            const formattedDate = parseLocalDate(t.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-            const pnl = t.income - t.expense;
+        recentTx.forEach(tx => {
+            const formattedDate = parseLocalDate(tx.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            const pnl = tx.income - tx.expense;
             
             // Desktop Row
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="text-bold">${formattedDate}</td>
-                <td class="text-right text-success text-bold">฿${(t.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
-                <td class="text-right text-danger text-bold">฿${(t.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
+                <td class="text-right text-success text-bold">฿${(tx.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
+                <td class="text-right text-danger text-bold">฿${(tx.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
                 <td class="text-right text-bold ${pnl >= 0 ? 'text-success' : 'text-danger'}">
                     ฿${pnl.toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}
                 </td>
-                <td class="text-small text-muted" style="max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${t.note || '-'}</td>
+                <td class="text-small text-muted" style="max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${tx.note || '-'}</td>
                 <td class="text-center">
-                    <button class="row-icon-btn btn-edit-tx" data-id="${t.id}" title="${t('action_edit')}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
-                    <button class="row-icon-btn btn-row-delete" data-id="${t.id}" title="${t('action_delete')}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+                    <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}" title="${t('action_edit')}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
+                    <button class="row-icon-btn btn-row-delete" data-id="${tx.id}" title="${t('action_delete')}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -832,13 +832,13 @@ function renderDashboard() {
                     </div>
                 </div>
                 <div class="mobile-tx-meta">
-                    <div><span>${t('table_income')}:</span> <span class="text-success text-bold">฿${(t.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
-                    <div><span>${t('table_expense')}::</span> <span class="text-danger text-bold">฿${(t.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
-                    ${t.note ? `<div style="margin-top: 4px; font-style: italic; color: var(--text-muted);">${t.note}</div>` : ''}
+                    <div><span>${t('table_income')}:</span> <span class="text-success text-bold">฿${(tx.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
+                    <div><span>${t('table_expense')}::</span> <span class="text-danger text-bold">฿${(tx.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
+                    ${tx.note ? `<div style="margin-top: 4px; font-style: italic; color: var(--text-muted);">${tx.note}</div>` : ''}
                 </div>
                 <div class="mobile-tx-actions">
-                    <button class="row-icon-btn btn-edit-tx" data-id="${t.id}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i> ${t('action_edit')}</button>
-                    <button class="row-icon-btn btn-row-delete" data-id="${t.id}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> ${t('action_delete')}</button>
+                    <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i> ${t('action_edit')}</button>
+                    <button class="row-icon-btn btn-row-delete" data-id="${tx.id}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> ${t('action_delete')}</button>
                 </div>
             `;
             mobileList.appendChild(card);
@@ -1069,23 +1069,23 @@ function renderTransactionsTable() {
         tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${noResultsText}</td></tr>`;
         mobileList.innerHTML = `<div class="text-center text-muted py-5">${noResultsText}</div>`;
     } else {
-        paginatedList.forEach(t => {
-            const formattedDate = parseLocalDate(t.date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-            const pnl = t.income - t.expense;
+        paginatedList.forEach(tx => {
+            const formattedDate = parseLocalDate(tx.date).toLocaleDateString(isTh ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            const pnl = tx.income - tx.expense;
             
             // Desktop
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="text-bold">${formattedDate}</td>
-                <td class="text-right text-success text-bold">฿${(t.income || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
-                <td class="text-right text-danger text-bold">฿${(t.expense || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
+                <td class="text-right text-success text-bold">฿${(tx.income || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
+                <td class="text-right text-danger text-bold">฿${(tx.expense || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
                 <td class="text-right text-bold ${pnl >= 0 ? 'text-success' : 'text-danger'}">
                     ฿${pnl.toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}
                 </td>
-                <td class="text-small text-muted" style="max-width: 250px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${t.note || ''}">${t.note || '-'}</td>
+                <td class="text-small text-muted" style="max-width: 250px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${tx.note || ''}">${tx.note || '-'}</td>
                 <td class="text-center">
-                    <button class="row-icon-btn btn-edit-tx" data-id="${t.id}" title="${t('action_edit')}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
-                    <button class="row-icon-btn btn-row-delete" data-id="${t.id}" title="${t('action_delete')}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+                    <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}" title="${t('action_edit')}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
+                    <button class="row-icon-btn btn-row-delete" data-id="${tx.id}" title="${t('action_delete')}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -1101,13 +1101,13 @@ function renderTransactionsTable() {
                     </div>
                 </div>
                 <div class="mobile-tx-meta">
-                    <div><span>${t('table_income')}:</span> <span class="text-success text-bold">฿${(t.income || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
-                    <div><span>${t('table_expense')}:</span> <span class="text-danger text-bold">฿${(t.expense || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
-                    ${t.note ? `<div style="margin-top: 4px; font-style: italic; color: var(--text-muted);">${t.note}</div>` : ''}
+                    <div><span>${t('table_income')}:</span> <span class="text-success text-bold">฿${(tx.income || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
+                    <div><span>${t('table_expense')}:</span> <span class="text-danger text-bold">฿${(tx.expense || 0).toLocaleString(isTh ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
+                    ${tx.note ? `<div style="margin-top: 4px; font-style: italic; color: var(--text-muted);">${tx.note}</div>` : ''}
                 </div>
                 <div class="mobile-tx-actions">
-                    <button class="row-icon-btn btn-edit-tx" data-id="${t.id}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i> ${t('action_edit')}</button>
-                    <button class="row-icon-btn btn-row-delete" data-id="${t.id}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> ${t('action_delete')}</button>
+                    <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i> ${t('action_edit')}</button>
+                    <button class="row-icon-btn btn-row-delete" data-id="${tx.id}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> ${t('action_delete')}</button>
                 </div>
             `;
             mobileList.appendChild(card);

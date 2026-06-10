@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Coffee Ledger - Daily Summary Application Logic
-   Features: State Management, localStorage, Duplicate Date Checks, Charts, CSV, PDF Print
+   Coffee Ledger - Daily Summary Application Logic (v1.1 - Password Auth Enabled)
+   Features: State Management, localStorage, Duplicate Date Checks, Charts, CSV, PDF Print, Authentication
    ========================================================================== */
 
 // --- Global Error Handler ---

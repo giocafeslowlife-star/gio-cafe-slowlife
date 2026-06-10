@@ -3,6 +3,40 @@
    Features: State Management, localStorage, Duplicate Date Checks, Charts, CSV, PDF Print
    ========================================================================== */
 
+// --- Global Error Handler ---
+window.addEventListener('error', function(event) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.position = 'fixed';
+    errorDiv.style.top = '0';
+    errorDiv.style.left = '0';
+    errorDiv.style.width = '100%';
+    errorDiv.style.background = 'rgba(220, 38, 38, 0.95)';
+    errorDiv.style.color = '#fff';
+    errorDiv.style.padding = '16px';
+    errorDiv.style.zIndex = '99999';
+    errorDiv.style.fontFamily = 'monospace';
+    errorDiv.style.fontSize = '14px';
+    errorDiv.style.whiteSpace = 'pre-wrap';
+    errorDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+    errorDiv.innerHTML = '<strong>⚠️ JavaScript Error Detected:</strong><br>' + 
+                          event.message + '<br>at ' + event.filename + ':' + event.lineno + ':' + event.colno;
+    
+    // Add close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Dismiss';
+    closeBtn.style.marginLeft = '12px';
+    closeBtn.style.background = '#fff';
+    closeBtn.style.color = '#000';
+    closeBtn.style.border = 'none';
+    closeBtn.style.padding = '4px 8px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.borderRadius = '4px';
+    closeBtn.onclick = function() { errorDiv.remove(); };
+    errorDiv.appendChild(closeBtn);
+    
+    document.body.appendChild(errorDiv);
+});
+
 // --- Global Variables & App State ---
 let state = {
     transactions: [], // Array of { id, date, income, expense, note }

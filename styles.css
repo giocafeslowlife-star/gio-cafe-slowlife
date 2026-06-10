@@ -1408,3 +1408,18 @@ body.light-theme .btn-primary:hover {
         color: #000 !important;
     }
 }
+
+/* Spinner Animation for Loading states */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+

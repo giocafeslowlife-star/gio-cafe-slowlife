@@ -138,7 +138,13 @@ const translations = {
         action_delete: "ลบ",
         note_placeholder: "ระบุข้อมูลเพิ่มเติมของวันนี้ (ถ้ามี)...",
         sync_cloud: "โหมดเชื่อมต่อคลาวด์",
-        sync_offline: "โหมดออฟไลน์"
+        sync_offline: "โหมดออฟไลน์",
+        login_title: "เข้าสู่ระบบ",
+        login_subtitle: "กรุณากรอกรหัสผ่านเพื่อเข้าใช้งานข้อมูลบัญชีร้านค้า",
+        login_password_label: "รหัสผ่านสำหรับเข้าใช้งาน",
+        login_error_text: "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง",
+        btn_login: "เข้าสู่ระบบ",
+        lock_app: "ล็อกแอปพลิเคชัน"
     },
     en: {
         nav_dashboard: "Dashboard",
@@ -222,7 +228,13 @@ const translations = {
         action_delete: "Delete",
         note_placeholder: "Specify additional info for today (if any)...",
         sync_cloud: "Cloud Sync Mode",
-        sync_offline: "Offline Mode"
+        sync_offline: "Offline Mode",
+        login_title: "Log In",
+        login_subtitle: "Please enter your password to access the store transactions",
+        login_password_label: "Access Password",
+        login_error_text: "Invalid password. Please try again.",
+        btn_login: "Log In",
+        lock_app: "Lock Application"
     }
 };
 
@@ -267,6 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 6. Set up Forms & Modals
     initFormsAndModals();
+
+    // 7. Set up Security Handlers
+    initSecurityHandlers();
 });
 
 // --- Language Management ---
@@ -488,6 +503,24 @@ function updateLanguageUI() {
         }
     }
     
+    // Login Modal Translations
+    const loginTitle = document.getElementById('login-title');
+    if (loginTitle) loginTitle.textContent = t('login_title');
+    const loginSubtitle = document.getElementById('login-subtitle');
+    if (loginSubtitle) loginSubtitle.textContent = t('login_subtitle');
+    const loginPasswordLabel = document.getElementById('login-password-label');
+    if (loginPasswordLabel) loginPasswordLabel.textContent = t('login_password_label');
+    const loginErrorText = document.getElementById('login-error-text');
+    if (loginErrorText) loginErrorText.textContent = t('login_error_text');
+    const btnLoginText = document.getElementById('btn-login-text');
+    if (btnLoginText) btnLoginText.textContent = t('btn_login');
+    const loginLangText = document.getElementById('login-lang-text');
+    if (loginLangText) loginLangText.textContent = lang === 'th' ? 'English' : 'ไทย';
+
+    // Lock button translations
+    const lockBtnText = document.querySelector('#lock-app-btn .lock-text');
+    if (lockBtnText) lockBtnText.textContent = t('lock_app');
+    
     // Refresh lucide icons for translated dynamic elements
     lucide.createIcons();
 }
@@ -579,6 +612,61 @@ function initNavigation() {
     });
 }
 
+// --- Login Overlay & Locking Helpers ---
+function showLoginModal(show) {
+    const overlay = document.getElementById('login-overlay');
+    if (!overlay) return;
+    if (show) {
+        overlay.classList.add('active');
+        // Clear UI data to prevent leaking info
+        document.getElementById('dashboard-total-income').textContent = '฿0.00';
+        document.getElementById('dashboard-total-expense').textContent = '฿0.00';
+        const profitEl = document.getElementById('dashboard-net-profit');
+        if (profitEl) {
+            profitEl.textContent = '฿0.00';
+            profitEl.className = 'value-loading';
+        }
+        document.getElementById('dashboard-avg-daily').textContent = '฿0.00';
+        
+        const dashboardTableBody = document.getElementById('dashboard-recent-table-body');
+        if (dashboardTableBody) {
+            dashboardTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${t('login_title')}</td></tr>`;
+        }
+        const dashboardMobileList = document.getElementById('dashboard-recent-mobile-list');
+        if (dashboardMobileList) {
+            dashboardMobileList.innerHTML = '';
+        }
+        const transactionsTableBody = document.getElementById('transactions-table-body');
+        if (transactionsTableBody) {
+            transactionsTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${t('login_title')}</td></tr>`;
+        }
+        const transactionsMobileList = document.getElementById('transactions-mobile-list');
+        if (transactionsMobileList) {
+            transactionsMobileList.innerHTML = '';
+        }
+        const reportTransactionsList = document.getElementById('report-transactions-list');
+        if (reportTransactionsList) {
+            reportTransactionsList.innerHTML = `<tr><td colspan="5" class="text-center text-muted">${t('login_title')}</td></tr>`;
+        }
+        
+        // Hide lock buttons
+        const lockBtn = document.getElementById('lock-app-btn');
+        if (lockBtn) lockBtn.classList.add('hidden');
+        const lockHeaderBtn = document.getElementById('lock-app-btn-header');
+        if (lockHeaderBtn) lockHeaderBtn.classList.add('hidden');
+    } else {
+        overlay.classList.remove('active');
+    }
+}
+
+function handleUnauthorizedError() {
+    alert(state.settings.lang === 'th' 
+        ? '⚠️ เซสชันหมดอายุหรือรหัสผ่านไม่ถูกต้อง กรุณาล็อกอินใหม่' 
+        : '⚠️ Session expired or invalid password. Please log in again.');
+    localStorage.removeItem('gio_auth_token');
+    showLoginModal(true);
+}
+
 // --- State Persistence ---
 async function loadState() {
     // 1. First load from localStorage to show cached data immediately
@@ -609,12 +697,39 @@ async function loadState() {
     }
 
     // 2. Perform async check to probe Cloudflare Pages Functions D1 API
+    const token = localStorage.getItem('gio_auth_token');
+    const headers = {};
+    if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+    }
+
     try {
-        const response = await fetch('/api/transactions');
+        const response = await fetch('/api/transactions', { headers });
+        
+        // Handle 401 Unauthorized
+        if (response.status === 401) {
+            console.warn("D1 API returned 401 Unauthorized. Access is protected.");
+            isCloudMode = true;
+            showLoginModal(true);
+            return;
+        }
+
         if (response.ok) {
             const remoteTransactions = await response.json();
             if (Array.isArray(remoteTransactions)) {
                 isCloudMode = true;
+                
+                // Hide login screen if authorized
+                showLoginModal(false);
+
+                // Show lock buttons only if password authentication is actually active on backend
+                // (e.g. if we get 200 with no token but there was a password, wait, if we got 200 with NO token, it means it is not protected!)
+                if (token) {
+                    const lockBtn = document.getElementById('lock-app-btn');
+                    if (lockBtn) lockBtn.classList.remove('hidden');
+                    const lockHeaderBtn = document.getElementById('lock-app-btn-header');
+                    if (lockHeaderBtn) lockHeaderBtn.classList.remove('hidden');
+                }
                 
                 // If Cloud is empty but we have local transactions, populate Cloud DB with them
                 if (remoteTransactions.length === 0 && state.transactions.length > 0) {
@@ -623,7 +738,10 @@ async function loadState() {
                         try {
                             await fetch('/api/transactions', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' + token
+                                },
                                 body: JSON.stringify(tx)
                             });
                         } catch (err) {
@@ -648,11 +766,13 @@ async function loadState() {
         } else {
             console.warn("D1 API returned non-ok response. Offline mode active.");
             isCloudMode = false;
+            showLoginModal(false);
             updateLanguageUI();
         }
     } catch (err) {
         console.log("D1 API is unreachable (expected in local offline environment). Running in offline localStorage mode.");
         isCloudMode = false;
+        showLoginModal(false);
         updateLanguageUI();
     }
 }
@@ -664,11 +784,21 @@ function saveState() {
 async function saveTransaction(tx) {
     if (isCloudMode) {
         try {
+            const token = localStorage.getItem('gio_auth_token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
             const response = await fetch('/api/transactions', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify(tx)
             });
+            
+            if (response.status === 401) {
+                handleUnauthorizedError();
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(await response.text());
             }
@@ -1375,9 +1505,18 @@ function initFormsAndModals() {
         if (confirm(t('confirm_clear_all'))) {
             if (isCloudMode) {
                 try {
+                    const token = localStorage.getItem('gio_auth_token');
+                    const headers = {};
+                    if (token) headers['Authorization'] = 'Bearer ' + token;
+
                     const response = await fetch('/api/transactions?id=all', {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: headers
                     });
+                    if (response.status === 401) {
+                        handleUnauthorizedError();
+                        return;
+                    }
                     if (!response.ok) {
                         throw new Error(await response.text());
                     }
@@ -1415,6 +1554,105 @@ function initFormsAndModals() {
     }
 }
 
+// --- Security & Login Handlers ---
+function initSecurityHandlers() {
+    const loginForm = document.getElementById('login-form');
+    const loginPasswordInput = document.getElementById('login-password');
+    const btnTogglePassword = document.getElementById('btn-toggle-password');
+    const loginErrorMsg = document.getElementById('login-error-msg');
+    const loginLangToggle = document.getElementById('login-lang-toggle');
+    const lockAppBtn = document.getElementById('lock-app-btn');
+    const lockAppBtnHeader = document.getElementById('lock-app-btn-header');
+
+    // Toggle Password Visibility
+    if (btnTogglePassword && loginPasswordInput) {
+        btnTogglePassword.addEventListener('click', () => {
+            const isPassword = loginPasswordInput.getAttribute('type') === 'password';
+            loginPasswordInput.setAttribute('type', isPassword ? 'text' : 'password');
+            btnTogglePassword.innerHTML = `<i data-lucide="${isPassword ? 'eye-off' : 'eye'}" style="width: 18px; height: 18px;"></i>`;
+            lucide.createIcons();
+        });
+    }
+
+    // Toggle Language inside Login Overlay
+    if (loginLangToggle) {
+        loginLangToggle.addEventListener('click', () => {
+            state.settings.lang = state.settings.lang === 'th' ? 'en' : 'th';
+            saveState();
+            updateLanguageUI();
+        });
+    }
+
+    // Submit Password Form
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = loginPasswordInput.value;
+            
+            // Show loading state
+            const btnSubmit = document.getElementById('btn-login-submit');
+            if (!btnSubmit) return;
+            const originalBtnText = btnSubmit.innerHTML;
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i data-lucide="loader-2" class="animate-spin" style="width: 18px; height: 18px; margin-right: 6px;"></i><span>Loading...</span>`;
+            lucide.createIcons();
+            
+            if (loginErrorMsg) loginErrorMsg.classList.add('hidden');
+
+            try {
+                // Test the password against D1 API using GET probe
+                const response = await fetch('/api/transactions', {
+                    headers: { 'Authorization': 'Bearer ' + password }
+                });
+
+                if (response.ok) {
+                    // Password is correct!
+                    localStorage.setItem('gio_auth_token', password);
+                    loginPasswordInput.value = '';
+                    showLoginModal(false);
+                    
+                    // Reload state to fetch all data and update UI
+                    await loadState();
+                } else {
+                    // Password incorrect (e.g. 401)
+                    if (loginErrorMsg) loginErrorMsg.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error("Login verification error:", err);
+                alert(state.settings.lang === 'th' 
+                    ? '⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง' 
+                    : '⚠️ Connection error. Please try again.');
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalBtnText;
+                lucide.createIcons();
+            }
+        });
+    }
+
+    // Lock/Logout handlers
+    const lockAction = () => {
+        if (confirm(state.settings.lang === 'th' 
+            ? 'คุณต้องการล็อกหน้าจอและออกจากระบบใช่หรือไม่?' 
+            : 'Are you sure you want to lock and log out?')) {
+            localStorage.removeItem('gio_auth_token');
+            // Clear D1 transactions cache memory
+            state.transactions = [];
+            saveState();
+            // Reload page to start with a fresh slate and bring up the login dialog
+            window.location.reload();
+        }
+    };
+
+    if (lockAppBtn) {
+        lockAppBtn.addEventListener('click', lockAction);
+    }
+    if (lockAppBtnHeader) {
+        lockAppBtnHeader.addEventListener('click', lockAction);
+    }
+}
+
+
 function openDeleteConfirmModal(txId) {
     const tx = state.transactions.find(t => t.id === txId);
     if (!tx) return;
@@ -1428,9 +1666,18 @@ function openDeleteConfirmModal(txId) {
     document.getElementById('btn-confirm-delete').onclick = async () => {
         if (isCloudMode) {
             try {
+                const token = localStorage.getItem('gio_auth_token');
+                const headers = {};
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
                 const response = await fetch(`/api/transactions?id=${encodeURIComponent(txId)}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: headers
                 });
+                if (response.status === 401) {
+                    handleUnauthorizedError();
+                    return;
+                }
                 if (!response.ok) {
                     throw new Error(await response.text());
                 }

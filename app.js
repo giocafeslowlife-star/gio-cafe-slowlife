@@ -1519,3 +1519,73 @@ function exportCSV() {
     link.click();
     document.body.removeChild(link);
 }
+
+// --- Debug & Diagnostics Overlay ---
+document.addEventListener('DOMContentLoaded', () => {
+    const diagBtn = document.createElement('button');
+    diagBtn.textContent = '🛠️ Debug';
+    diagBtn.style.position = 'fixed';
+    diagBtn.style.bottom = '80px';
+    diagBtn.style.right = '20px';
+    diagBtn.style.zIndex = '99999';
+    diagBtn.style.background = 'rgba(0,0,0,0.85)';
+    diagBtn.style.color = '#fff';
+    diagBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+    diagBtn.style.borderRadius = '8px';
+    diagBtn.style.padding = '8px 12px';
+    diagBtn.style.fontSize = '12px';
+    diagBtn.style.cursor = 'pointer';
+    diagBtn.style.fontFamily = 'system-ui, sans-serif';
+    diagBtn.onclick = showDiagnostics;
+    document.body.appendChild(diagBtn);
+
+    function showDiagnostics() {
+        const sections = ['dashboard-section', 'transactions-section', 'reports-section'];
+        let html = '<h3 style="margin: 0 0 12px 0; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px;">🔍 System Diagnostics</h3>';
+        html += `<p><strong>Cloud Mode:</strong> ${isCloudMode ? '✅ Yes' : '❌ No'}</p>`;
+        html += `<p><strong>Language:</strong> ${state.settings.lang}</p>`;
+        html += `<p><strong>Theme:</strong> ${state.settings.theme}</p>`;
+        html += '<h4 style="margin: 12px 0 6px 0; font-size: 14px;">Sections Status:</h4><ul style="padding-left: 16px; margin: 0;">';
+        
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                const style = window.getComputedStyle(el);
+                html += `<li style="margin-bottom: 8px;"><strong>#${id}:</strong><br>` +
+                        `- Classes: <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">${el.className}</code><br>` +
+                        `- Display (computed): <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">${style.display}</code><br>` +
+                        `- Visibility (computed): <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">${style.visibility}</code></li>`;
+            } else {
+                html += `<li style="margin-bottom: 8px; color: #ff7171;"><strong>#${id}:</strong> NOT FOUND</li>`;
+            }
+        });
+        html += '</ul>';
+
+        // Add close button
+        html += '<button id="btn-close-diag" style="margin-top:16px;width:100%;padding:10px;background:#5c93e6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Close</button>';
+
+        const overlay = document.createElement('div');
+        overlay.id = 'diagnostics-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '15%';
+        overlay.style.left = '10%';
+        overlay.style.width = '80%';
+        overlay.style.maxHeight = '70%';
+        overlay.style.overflowY = 'auto';
+        overlay.style.background = '#1a1311';
+        overlay.style.color = '#f5f3f2';
+        overlay.style.padding = '20px';
+        overlay.style.border = '2px solid #5c93e6';
+        overlay.style.borderRadius = '12px';
+        overlay.style.zIndex = '100000';
+        overlay.style.fontFamily = 'monospace';
+        overlay.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+        overlay.style.fontSize = '13px';
+        overlay.innerHTML = html;
+        document.body.appendChild(overlay);
+
+        document.getElementById('btn-close-diag').onclick = function() {
+            overlay.remove();
+        };
+    }
+});

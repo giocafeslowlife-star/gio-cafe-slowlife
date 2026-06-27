@@ -1022,10 +1022,10 @@ function renderCharts() {
         const dashboardPeriodSelect = document.getElementById('dashboard-period-select');
         const dashboardPeriod = dashboardPeriodSelect ? dashboardPeriodSelect.value : 'month';
         let dashboardChartPeriod = 30;
-        if (dashboardPeriod === 'week') {
-            dashboardChartPeriod = 7;
-        } else if (dashboardPeriod === 'month') {
+        if (dashboardPeriod === 'month') {
             dashboardChartPeriod = 30;
+        } else if (dashboardPeriod === '6months') {
+            dashboardChartPeriod = 180;
         } else if (dashboardPeriod === 'year') {
             dashboardChartPeriod = 365;
         }

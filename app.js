@@ -522,33 +522,35 @@ function updateLanguageUI() {
 // --- Theme Management ---
 function initTheme() {
     const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeText = themeToggleBtn.querySelector('.theme-text');
+    const themeText = themeToggleBtn ? themeToggleBtn.querySelector('.theme-text') : null;
     
     if (state.settings.theme === 'light') {
         document.body.classList.remove('dark-theme');
         document.body.classList.add('light-theme');
-        themeText.textContent = t('theme_dark');
+        if (themeText) themeText.textContent = t('theme_dark');
     } else {
         document.body.classList.remove('light-theme');
         document.body.classList.add('dark-theme');
-        themeText.textContent = t('theme_light');
+        if (themeText) themeText.textContent = t('theme_light');
     }
     
-    themeToggleBtn.addEventListener('click', () => {
-        if (document.body.classList.contains('dark-theme')) {
-            document.body.classList.remove('dark-theme');
-            document.body.classList.add('light-theme');
-            state.settings.theme = 'light';
-            themeText.textContent = t('theme_dark');
-        } else {
-            document.body.classList.remove('light-theme');
-            document.body.classList.add('dark-theme');
-            state.settings.theme = 'dark';
-            themeText.textContent = t('theme_light');
-        }
-        saveState();
-        renderCharts(); // Redraw chart for color sync
-    });
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.body.classList.contains('dark-theme')) {
+                document.body.classList.remove('dark-theme');
+                document.body.classList.add('light-theme');
+                state.settings.theme = 'light';
+                if (themeText) themeText.textContent = t('theme_dark');
+            } else {
+                document.body.classList.remove('light-theme');
+                document.body.classList.add('dark-theme');
+                state.settings.theme = 'dark';
+                if (themeText) themeText.textContent = t('theme_light');
+            }
+            saveState();
+            renderCharts(); // Redraw chart for color sync
+        });
+    }
 }
 
 // --- Navigation ---

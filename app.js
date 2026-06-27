@@ -1016,10 +1016,21 @@ function renderCharts() {
         return { labels, incomeData, expenseData };
     };
 
-    // 1. Render Dashboard Chart (15 Days)
+    // 1. Render Dashboard Chart (Based on Select dropdown)
     const dashboardCanvas = document.getElementById('dashboardCashflowChart');
     if (dashboardCanvas) {
-        const { labels, incomeData, expenseData } = getChartDataForDays(15);
+        const dashboardPeriodSelect = document.getElementById('dashboard-period-select');
+        const dashboardPeriod = dashboardPeriodSelect ? dashboardPeriodSelect.value : 'month';
+        let dashboardChartPeriod = 30;
+        if (dashboardPeriod === 'week') {
+            dashboardChartPeriod = 7;
+        } else if (dashboardPeriod === 'month') {
+            dashboardChartPeriod = 30;
+        } else if (dashboardPeriod === 'year') {
+            dashboardChartPeriod = 365;
+        }
+
+        const { labels, incomeData, expenseData } = getChartDataForDays(dashboardChartPeriod);
         if (dashboardChartInstance) dashboardChartInstance.destroy();
         
         dashboardChartInstance = new Chart(dashboardCanvas.getContext('2d'), {
@@ -1052,7 +1063,13 @@ function renderCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai' } }
+                        labels: { 
+                            color: textThemeColor, 
+                            font: { family: 'Outfit, Noto Sans Thai' },
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            boxWidth: 8
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -1125,7 +1142,13 @@ function renderCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai' } }
+                        labels: { 
+                            color: textThemeColor, 
+                            font: { family: 'Outfit, Noto Sans Thai' },
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            boxWidth: 8
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -1469,6 +1492,11 @@ function renderReports() {
 // --- Forms & Modals Handlers ---
 function initFormsAndModals() {
     document.getElementById('report-period-select').addEventListener('change', renderReports);
+    
+    const dbPeriodSelect = document.getElementById('dashboard-period-select');
+    if (dbPeriodSelect) {
+        dbPeriodSelect.addEventListener('change', renderCharts);
+    }
 
     const modal = document.getElementById('transaction-modal');
     

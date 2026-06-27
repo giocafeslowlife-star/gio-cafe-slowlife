@@ -175,8 +175,15 @@
 
                 <!-- Cashflow Chart Area -->
                 <div class="chart-card large-chart" style="margin-top: 24px;">
-                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 id="chart-dashboard-title" style="font-size: 1.1rem; font-weight: 600; margin: 0;">แนวโน้มกระแสเงินสด (15 วันล่าสุด)</h3>
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <h3 id="chart-dashboard-title" style="font-size: 1.1rem; font-weight: 600; margin: 0;">แนวโน้มกระแสเงินสด</h3>
+                        <div class="dashboard-chart-filter">
+                            <select id="dashboard-period-select" class="select-input" style="padding: 6px 12px; font-size: 0.85rem; border-radius: var(--border-radius-sm); background: var(--bg-card); border: 1px solid var(--glass-border); color: var(--text-primary); cursor: pointer;">
+                                <option value="week">รายอาทิตย์ (7 วัน)</option>
+                                <option value="month" selected>รายเดือน (30 วัน)</option>
+                                <option value="year">รายปี (365 วัน)</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="chart-container" style="height: 340px; position: relative; margin-top: 16px;">
                         <canvas id="dashboardCashflowChart"></canvas>

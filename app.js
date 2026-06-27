@@ -287,7 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- Language Management ---
 function initLanguage() {
     const langToggleBtn = document.getElementById('lang-toggle');
-    const langToggleHeader = document.getElementById('lang-toggle-header');
     
     state.settings.lang = state.settings.lang || 'th';
     updateLanguageUI();
@@ -310,7 +309,6 @@ function initLanguage() {
     };
 
     if (langToggleBtn) langToggleBtn.addEventListener('click', toggleAction);
-    if (langToggleHeader) langToggleHeader.addEventListener('click', toggleAction);
 }
 
 function updateLanguageUI() {
@@ -335,13 +333,9 @@ function updateLanguageUI() {
     }
 
     // Language selector labels
-    const langText = document.querySelector('.lang-text');
-    if (langText) {
-        langText.textContent = lang === 'th' ? 'English' : 'ไทย';
-    }
-    const langHeaderText = document.querySelector('.lang-header-text');
-    if (langHeaderText) {
-        langHeaderText.textContent = lang === 'th' ? 'EN' : 'TH';
+    const langBadge = document.querySelector('.lang-badge');
+    if (langBadge) {
+        langBadge.textContent = lang === 'th' ? 'EN' : 'TH';
     }
 
     // Add entry button
@@ -652,8 +646,6 @@ function showLoginModal(show) {
         // Hide lock buttons
         const lockBtn = document.getElementById('lock-app-btn');
         if (lockBtn) lockBtn.classList.add('hidden');
-        const lockHeaderBtn = document.getElementById('lock-app-btn-header');
-        if (lockHeaderBtn) lockHeaderBtn.classList.add('hidden');
     } else {
         overlay.classList.remove('active');
     }
@@ -727,8 +719,6 @@ async function loadState() {
                 if (token) {
                     const lockBtn = document.getElementById('lock-app-btn');
                     if (lockBtn) lockBtn.classList.remove('hidden');
-                    const lockHeaderBtn = document.getElementById('lock-app-btn-header');
-                    if (lockHeaderBtn) lockHeaderBtn.classList.remove('hidden');
                 }
                 
                 // If Cloud is empty but we have local transactions, populate Cloud DB with them
@@ -919,178 +909,245 @@ function renderDashboard() {
 
 
     // 4. Render recent daily table
-    const recentTx = sortedTx.slice(0, 5);
     const tableBody = document.getElementById('dashboard-recent-table-body');
     const mobileList = document.getElementById('dashboard-recent-mobile-list');
     
-    tableBody.innerHTML = '';
-    mobileList.innerHTML = '';
-    
-    if (recentTx.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${t('no_data')}</td></tr>`;
-        mobileList.innerHTML = `<div class="text-center text-muted py-4">${t('no_data')}</div>`;
-    } else {
-        recentTx.forEach(tx => {
-            const formattedDate = parseLocalDate(tx.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-            const pnl = tx.income - tx.expense;
-            
-            // Desktop Row
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="text-bold">${formattedDate}</td>
-                <td class="text-right text-success text-bold">฿${(tx.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
-                <td class="text-right text-danger text-bold">฿${(tx.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
-                <td class="text-right text-bold ${pnl >= 0 ? 'text-success' : 'text-danger'}">
-                    ฿${pnl.toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}
-                </td>
-                <td class="text-small text-muted" style="max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${tx.note || '-'}</td>
-                <td class="text-center">
-                    <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}" title="${t('action_edit')}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
-                    <button class="row-icon-btn btn-row-delete" data-id="${tx.id}" title="${t('action_delete')}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-            
-            // Mobile Card
-            const card = document.createElement('div');
-            card.className = 'mobile-tx-card';
-            card.innerHTML = `
-                <div class="mobile-tx-header">
-                    <div class="mobile-tx-title">${formattedDate}</div>
-                    <div class="mobile-tx-amount ${pnl >= 0 ? 'text-success' : 'text-danger'}">
+    if (tableBody && mobileList) {
+        const recentTx = sortedTx.slice(0, 5);
+        tableBody.innerHTML = '';
+        mobileList.innerHTML = '';
+        
+        if (recentTx.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${t('no_data')}</td></tr>`;
+            mobileList.innerHTML = `<div class="text-center text-muted py-4">${t('no_data')}</div>`;
+        } else {
+            recentTx.forEach(tx => {
+                const formattedDate = parseLocalDate(tx.date).toLocaleDateString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                const pnl = tx.income - tx.expense;
+                
+                // Desktop Row
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="text-bold">${formattedDate}</td>
+                    <td class="text-right text-success text-bold">฿${(tx.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
+                    <td class="text-right text-danger text-bold">฿${(tx.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</td>
+                    <td class="text-right text-bold ${pnl >= 0 ? 'text-success' : 'text-danger'}">
                         ฿${pnl.toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td class="text-small text-muted" style="max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${tx.note || '-'}</td>
+                    <td class="text-center">
+                        <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}" title="${t('action_edit')}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
+                        <button class="row-icon-btn btn-row-delete" data-id="${tx.id}" title="${t('action_delete')}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+                
+                // Mobile Card
+                const card = document.createElement('div');
+                card.className = 'mobile-tx-card';
+                card.innerHTML = `
+                    <div class="mobile-tx-header">
+                        <div class="mobile-tx-title">${formattedDate}</div>
+                        <div class="mobile-tx-amount ${pnl >= 0 ? 'text-success' : 'text-danger'}">
+                            ฿${pnl.toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}
+                        </div>
                     </div>
-                </div>
-                <div class="mobile-tx-meta">
-                    <div><span>${t('table_income')}:</span> <span class="text-success text-bold">฿${(tx.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
-                    <div><span>${t('table_expense')}::</span> <span class="text-danger text-bold">฿${(tx.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
-                    ${tx.note ? `<div style="margin-top: 4px; font-style: italic; color: var(--text-muted);">${tx.note}</div>` : ''}
-                </div>
-                <div class="mobile-tx-actions">
-                    <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i> ${t('action_edit')}</button>
-                    <button class="row-icon-btn btn-row-delete" data-id="${tx.id}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> ${t('action_delete')}</button>
-                </div>
-            `;
-            mobileList.appendChild(card);
-        });
+                    <div class="mobile-tx-meta">
+                        <div><span>${t('table_income')}:</span> <span class="text-success text-bold">฿${(tx.income || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
+                        <div><span>${t('table_expense')}:</span> <span class="text-danger text-bold">฿${(tx.expense || 0).toLocaleString(state.settings.lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 2 })}</span></div>
+                        ${tx.note ? `<div style="margin-top: 4px; font-style: italic; color: var(--text-muted);">${tx.note}</div>` : ''}
+                    </div>
+                    <div class="mobile-tx-actions">
+                        <button class="row-icon-btn btn-edit-tx" data-id="${tx.id}"><i data-lucide="edit-2" style="width:14px;height:14px;"></i> ${t('action_edit')}</button>
+                        <button class="row-icon-btn btn-row-delete" data-id="${tx.id}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> ${t('action_delete')}</button>
+                    </div>
+                `;
+                mobileList.appendChild(card);
+            });
+        }
+        bindRowActions();
     }
-    
-    bindRowActions();
     lucide.createIcons();
 }
 
 // --- Render Chart ---
+let dashboardChartInstance = null;
+let reportChartInstance = null;
+
 function renderCharts() {
     const isDark = document.body.classList.contains('dark-theme');
     const textThemeColor = isDark ? '#c2b9b5' : '#66564e';
     const gridThemeColor = isDark ? 'rgba(78, 60, 52, 0.2)' : 'rgba(142, 88, 60, 0.08)';
     
-    const period = document.getElementById('report-period-select').value;
-    let chartPeriod = 30;
-    if (period === 'week') {
-        chartPeriod = 7;
-    } else if (period === 'month') {
-        chartPeriod = 30;
-    } else if (period === 'year') {
-        chartPeriod = 365;
-    }
-    
-    const dateLimit = new Date();
-    dateLimit.setDate(dateLimit.getDate() - chartPeriod);
-    
-    // Sort transactions chronologically
-    const filteredTx = state.transactions
-        .filter(t => parseLocalDate(t.date) >= dateLimit)
-        .sort((a, b) => parseLocalDate(a.date) - parseLocalDate(b.date));
+    // Helper to generate chart data for a given number of days
+    const getChartDataForDays = (days) => {
+        const dateLimit = new Date();
+        dateLimit.setDate(dateLimit.getDate() - days);
+        
+        const filteredTx = state.transactions
+            .filter(t => parseLocalDate(t.date) >= dateLimit)
+            .sort((a, b) => parseLocalDate(a.date) - parseLocalDate(b.date));
 
-    const dailyData = {};
-    for (let j = chartPeriod - 1; j >= 0; j--) {
-        const d = new Date();
-        d.setDate(d.getDate() - j);
-        const dateKey = d.toISOString().split('T')[0];
-        dailyData[dateKey] = { income: 0, expense: 0 };
-    }
-    
-    filteredTx.forEach(t => {
-        if (dailyData[t.date]) {
-            dailyData[t.date].income = t.income;
-            dailyData[t.date].expense = t.expense;
+        const dailyData = {};
+        for (let j = days - 1; j >= 0; j--) {
+            const d = new Date();
+            d.setDate(d.getDate() - j);
+            const dateKey = d.toISOString().split('T')[0];
+            dailyData[dateKey] = { income: 0, expense: 0 };
         }
-    });
+        
+        filteredTx.forEach(t => {
+            if (dailyData[t.date]) {
+                dailyData[t.date].income = t.income;
+                dailyData[t.date].expense = t.expense;
+            }
+        });
 
-    const labels = Object.keys(dailyData).map(k => {
-        const d = parseLocalDate(k);
-        return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-    });
-    
-    const incomeData = Object.values(dailyData).map(o => o.income);
-    const expenseData = Object.values(dailyData).map(o => o.expense);
+        const labels = Object.keys(dailyData).map(k => {
+            const d = parseLocalDate(k);
+            return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+        });
+        
+        const incomeData = Object.values(dailyData).map(o => o.income);
+        const expenseData = Object.values(dailyData).map(o => o.expense);
 
-    if (cashflowChartInstance) cashflowChartInstance.destroy();
-    
-    const ctxCashflow = document.getElementById('cashflowChart').getContext('2d');
-    cashflowChartInstance = new Chart(ctxCashflow, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'รายรับ (Income)',
-                    data: incomeData,
-                    borderColor: isDark ? '#34d399' : '#059669',
-                    backgroundColor: isDark ? 'rgba(52, 211, 153, 0.08)' : 'rgba(5, 150, 105, 0.05)',
-                    borderWidth: 3,
-                    tension: 0.35,
-                    fill: true,
-                    pointRadius: 2,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: isDark ? '#34d399' : '#059669',
-                    pointBorderColor: 'transparent'
-                },
-                {
-                    label: 'รายจ่าย (Expense)',
-                    data: expenseData,
-                    borderColor: isDark ? '#f87171' : '#dc2626',
-                    backgroundColor: isDark ? 'rgba(248, 113, 113, 0.08)' : 'rgba(220, 38, 38, 0.05)',
-                    borderWidth: 3,
-                    tension: 0.35,
-                    fill: true,
-                    pointRadius: 2,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: isDark ? '#f87171' : '#dc2626',
-                    pointBorderColor: 'transparent'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai' } }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: context => context.dataset.label + ': ฿' + context.raw.toLocaleString()
+        return { labels, incomeData, expenseData };
+    };
+
+    // 1. Render Dashboard Chart (15 Days)
+    const dashboardCanvas = document.getElementById('dashboardCashflowChart');
+    if (dashboardCanvas) {
+        const { labels, incomeData, expenseData } = getChartDataForDays(15);
+        if (dashboardChartInstance) dashboardChartInstance.destroy();
+        
+        dashboardChartInstance = new Chart(dashboardCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'รายรับ (Income)',
+                        data: incomeData,
+                        borderColor: isDark ? '#34d399' : '#059669',
+                        backgroundColor: isDark ? 'rgba(52, 211, 153, 0.85)' : 'rgba(5, 150, 105, 0.85)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: 'bottom'
+                    },
+                    {
+                        label: 'รายจ่าย (Expense)',
+                        data: expenseData,
+                        borderColor: isDark ? '#f87171' : '#dc2626',
+                        backgroundColor: isDark ? 'rgba(248, 113, 113, 0.85)' : 'rgba(220, 38, 38, 0.85)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: 'bottom'
                     }
-                }
+                ]
             },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai', size: 10 } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai' } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: context => context.dataset.label + ': ฿' + context.raw.toLocaleString()
+                        }
+                    }
                 },
-                y: {
-                    grid: { color: gridThemeColor },
-                    ticks: { 
-                        color: textThemeColor, 
-                        font: { family: 'Outfit, Noto Sans Thai', size: 10 },
-                        callback: value => '฿' + value.toLocaleString()
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai', size: 10 } }
+                    },
+                    y: {
+                        grid: { color: gridThemeColor },
+                        ticks: { 
+                            color: textThemeColor, 
+                            font: { family: 'Outfit, Noto Sans Thai', size: 10 },
+                            callback: value => '฿' + value.toLocaleString()
+                        }
                     }
                 }
             }
+        });
+    }
+
+    // 2. Render Reports Chart (Based on Select dropdown)
+    const reportCanvas = document.getElementById('reportCashflowChart');
+    if (reportCanvas) {
+        const periodSelect = document.getElementById('report-period-select');
+        const period = periodSelect ? periodSelect.value : 'month';
+        let chartPeriod = 30;
+        if (period === 'week') {
+            chartPeriod = 7;
+        } else if (period === 'month') {
+            chartPeriod = 30;
+        } else if (period === 'year') {
+            chartPeriod = 365;
         }
-    });
+
+        const { labels, incomeData, expenseData } = getChartDataForDays(chartPeriod);
+        if (reportChartInstance) reportChartInstance.destroy();
+        
+        reportChartInstance = new Chart(reportCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'รายรับ (Income)',
+                        data: incomeData,
+                        borderColor: isDark ? '#34d399' : '#059669',
+                        backgroundColor: isDark ? 'rgba(52, 211, 153, 0.85)' : 'rgba(5, 150, 105, 0.85)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: 'bottom'
+                    },
+                    {
+                        label: 'รายจ่าย (Expense)',
+                        data: expenseData,
+                        borderColor: isDark ? '#f87171' : '#dc2626',
+                        backgroundColor: isDark ? 'rgba(248, 113, 113, 0.85)' : 'rgba(220, 38, 38, 0.85)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: 'bottom'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai' } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: context => context.dataset.label + ': ฿' + context.raw.toLocaleString()
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textThemeColor, font: { family: 'Outfit, Noto Sans Thai', size: 10 } }
+                    },
+                    y: {
+                        grid: { color: gridThemeColor },
+                        ticks: { 
+                            color: textThemeColor, 
+                            font: { family: 'Outfit, Noto Sans Thai', size: 10 },
+                            callback: value => '฿' + value.toLocaleString()
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 // --- Filters ---
@@ -1562,7 +1619,6 @@ function initSecurityHandlers() {
     const loginErrorMsg = document.getElementById('login-error-msg');
     const loginLangToggle = document.getElementById('login-lang-toggle');
     const lockAppBtn = document.getElementById('lock-app-btn');
-    const lockAppBtnHeader = document.getElementById('lock-app-btn-header');
 
     // Toggle Password Visibility
     if (btnTogglePassword && loginPasswordInput) {
@@ -1646,9 +1702,6 @@ function initSecurityHandlers() {
 
     if (lockAppBtn) {
         lockAppBtn.addEventListener('click', lockAction);
-    }
-    if (lockAppBtnHeader) {
-        lockAppBtnHeader.addEventListener('click', lockAction);
     }
 }
 
@@ -1767,72 +1820,4 @@ function exportCSV() {
     document.body.removeChild(link);
 }
 
-// --- Debug & Diagnostics Overlay ---
-document.addEventListener('DOMContentLoaded', () => {
-    const diagBtn = document.createElement('button');
-    diagBtn.textContent = '🛠️ Debug';
-    diagBtn.style.position = 'fixed';
-    diagBtn.style.bottom = '80px';
-    diagBtn.style.right = '20px';
-    diagBtn.style.zIndex = '99999';
-    diagBtn.style.background = 'rgba(0,0,0,0.85)';
-    diagBtn.style.color = '#fff';
-    diagBtn.style.border = '1px solid rgba(255,255,255,0.2)';
-    diagBtn.style.borderRadius = '8px';
-    diagBtn.style.padding = '8px 12px';
-    diagBtn.style.fontSize = '12px';
-    diagBtn.style.cursor = 'pointer';
-    diagBtn.style.fontFamily = 'system-ui, sans-serif';
-    diagBtn.onclick = showDiagnostics;
-    document.body.appendChild(diagBtn);
 
-    function showDiagnostics() {
-        const sections = ['dashboard-section', 'transactions-section', 'reports-section'];
-        let html = '<h3 style="margin: 0 0 12px 0; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px;">🔍 System Diagnostics</h3>';
-        html += `<p><strong>Cloud Mode:</strong> ${isCloudMode ? '✅ Yes' : '❌ No'}</p>`;
-        html += `<p><strong>Language:</strong> ${state.settings.lang}</p>`;
-        html += `<p><strong>Theme:</strong> ${state.settings.theme}</p>`;
-        html += '<h4 style="margin: 12px 0 6px 0; font-size: 14px;">Sections Status:</h4><ul style="padding-left: 16px; margin: 0;">';
-        
-        sections.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                const style = window.getComputedStyle(el);
-                html += `<li style="margin-bottom: 8px;"><strong>#${id}:</strong><br>` +
-                        `- Classes: <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">${el.className}</code><br>` +
-                        `- Display (computed): <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">${style.display}</code><br>` +
-                        `- Visibility (computed): <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">${style.visibility}</code></li>`;
-            } else {
-                html += `<li style="margin-bottom: 8px; color: #ff7171;"><strong>#${id}:</strong> NOT FOUND</li>`;
-            }
-        });
-        html += '</ul>';
-
-        // Add close button
-        html += '<button id="btn-close-diag" style="margin-top:16px;width:100%;padding:10px;background:#5c93e6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Close</button>';
-
-        const overlay = document.createElement('div');
-        overlay.id = 'diagnostics-overlay';
-        overlay.style.position = 'fixed';
-        overlay.style.top = '15%';
-        overlay.style.left = '10%';
-        overlay.style.width = '80%';
-        overlay.style.maxHeight = '70%';
-        overlay.style.overflowY = 'auto';
-        overlay.style.background = '#1a1311';
-        overlay.style.color = '#f5f3f2';
-        overlay.style.padding = '20px';
-        overlay.style.border = '2px solid #5c93e6';
-        overlay.style.borderRadius = '12px';
-        overlay.style.zIndex = '100000';
-        overlay.style.fontFamily = 'monospace';
-        overlay.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
-        overlay.style.fontSize = '13px';
-        overlay.innerHTML = html;
-        document.body.appendChild(overlay);
-
-        document.getElementById('btn-close-diag').onclick = function() {
-            overlay.remove();
-        };
-    }
-});

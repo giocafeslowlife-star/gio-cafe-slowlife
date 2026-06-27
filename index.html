@@ -48,7 +48,7 @@
                                  C 65,55 78,40 76,26 
                                  C 74,12 60,6 48,16 
                                  C 44,19 40,28 40,28 Z" 
-                              fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                               fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
                               
                         <!-- Coffee Cup inside the heart -->
                         <g transform="translate(25, 30)">
@@ -89,19 +89,17 @@
                 </button>
             </nav>
             
-            <div class="sidebar-footer" style="display: flex; flex-direction: column; gap: 8px;">
-                <button id="theme-toggle" class="footer-btn">
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="footer-icon-btn" title="เปลี่ยนโหมดสี / Toggle Theme">
                     <i data-lucide="sun" class="sun-icon"></i>
                     <i data-lucide="moon" class="moon-icon"></i>
-                    <span class="theme-text">โหมดสว่าง</span>
                 </button>
-                <button id="lang-toggle" class="footer-btn">
-                    <i data-lucide="languages"></i>
-                    <span class="lang-text">English</span>
+                <button id="lang-toggle" class="footer-icon-btn" title="เปลี่ยนภาษา / Switch Language">
+                    <i data-lucide="languages" style="width: 16px; height: 16px;"></i>
+                    <span class="lang-badge">EN</span>
                 </button>
-                <button id="lock-app-btn" class="footer-btn hidden" style="color: var(--danger);">
-                    <i data-lucide="lock"></i>
-                    <span class="lock-text">ล็อกแอปพลิเคชัน</span>
+                <button id="lock-app-btn" class="footer-icon-btn hidden" style="color: var(--danger);" title="ล็อกแอปพลิเคชัน / Lock App">
+                    <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
                 </button>
             </div>
         </aside>
@@ -121,13 +119,6 @@
                     <p id="page-subtitle" class="text-muted" style="margin-top: 4px;">Daily coffee shop financial overview and summary</p>
                 </div>
                 <div class="header-actions" style="display: flex; gap: 8px;">
-                    <button id="lock-app-btn-header" class="btn btn-secondary hidden" style="padding: 10px 14px; color: var(--danger);" title="Lock App / ล็อกแอปพลิเคชัน">
-                        <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
-                    </button>
-                    <button id="lang-toggle-header" class="btn btn-secondary" style="padding: 10px 14px;" title="Switch Language / เปลี่ยนภาษา">
-                        <i data-lucide="languages" style="width: 16px; height: 16px;"></i>
-                        <span class="lang-header-text">EN</span>
-                    </button>
                     <button class="btn btn-primary btn-add-transaction">
                         <i data-lucide="plus"></i>
                         <span id="btn-add-text">Add Daily Entry</span>
@@ -182,33 +173,13 @@
                 </div>
 
 
-                <!-- Recent Transactions Area -->
-                <div class="recent-transactions-card">
-                    <div class="card-header">
-                        <h3>Recent Daily Summaries</h3>
-                        <button class="btn btn-text btn-view-all">View All <i data-lucide="arrow-right"></i></button>
+                <!-- Cashflow Chart Area -->
+                <div class="chart-card large-chart" style="margin-top: 24px;">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 id="chart-dashboard-title" style="font-size: 1.1rem; font-weight: 600; margin: 0;">แนวโน้มกระแสเงินสด (15 วันล่าสุด)</h3>
                     </div>
-                    <div class="transactions-list-container">
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th class="text-right">Daily Income</th>
-                                        <th class="text-right">Daily Expense</th>
-                                        <th class="text-right">Net Profit / Loss</th>
-                                        <th>Notes</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="dashboard-recent-table-body">
-                                    <!-- Rendered dynamically by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="mobile-cards-list" id="dashboard-recent-mobile-list">
-                            <!-- Rendered dynamically by JavaScript (cards for mobile screen) -->
-                        </div>
+                    <div class="chart-container" style="height: 340px; position: relative; margin-top: 16px;">
+                        <canvas id="dashboardCashflowChart"></canvas>
                     </div>
                 </div>
             </section>
@@ -340,7 +311,7 @@
                             <h3 style="font-size: 1.05rem; font-weight: 600;">กราฟแนวโน้มกระแสเงินสดรายวัน</h3>
                         </div>
                         <div class="chart-container" style="height: 320px;">
-                            <canvas id="cashflowChart"></canvas>
+                            <canvas id="reportCashflowChart"></canvas>
                         </div>
                     </div>
 
